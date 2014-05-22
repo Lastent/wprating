@@ -1,0 +1,18 @@
+.rating-stars > a, .rating-stars-already > a {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background: url("../images/star_off.png");
+}
+.rating-stars > a{
+    cursor: pointer;
+}
+.rating-stars > a.star-on, .rating-stars-already > a.star-on{
+    background: url("../images/star_on.png");
+}
+.rating-stars > a.star-temp{
+    background: url("../images/star_off.png");
+}
+.rating-stars > a.star-temp-on{
+    background: url("../images/star_on.png");
+}
