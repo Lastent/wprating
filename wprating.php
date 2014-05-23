@@ -250,3 +250,76 @@ function get_session_id() {
     return session_id();
 }
 add_action('init','register_session');
+
+class WPRatingWidget extends WP_Widget {
+
+    function __construct() {
+        parent::__construct(
+                'wprating_widget', // Base ID
+                __('WPRating', 'wprating'), // Name
+                array('description' => __('Shows the most rated post in the blog', 'wprating'),) // Args
+        );
+    }
+
+    public function widget($args, $instance) {
+        $query = new WP_Query(array('orderby' => 'meta_value', 'meta_key' => 'rating', 'order' => 'DESC', 'posts_per_page' => $instance['number']));
+        $title = apply_filters('widget_title', $instance['title']);
+
+        extract($args);
+        if ($query->have_posts()) :
+            ?>
+            <aside id="best-rated" class="widget">
+                <?php
+                echo $before_title;
+                if ($title)
+                    echo $before_title . $title . $after_title;
+                ?>
+                <ul>
+                    <?php while ($query->have_posts()) : $query->the_post(); ?>
+                        <li>
+                            <?php
+                            $rating = get_post_meta(get_the_ID(), 'rating', true);
+                            ?>
+                            <div class="show-stars stars-<?php echo $rating; ?>"></div>
+                            <a href="<?php the_permalink(); ?>"><?php get_the_title() ? the_title() : the_ID(); ?></a>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            </aside>
+            <?php
+            echo $after_widget;
+        endif;
+    }
+
+    public function form($instance) {
+        if (isset($instance['title'])) {
+            $title = $instance['title'];
+        } else {
+            $title = __('Best rated', 'wprating');
+        }
+        $number = isset($instance['number']) ? absint($instance['number']) : 5;
+        ?>
+        <p>
+            <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label> 
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo esc_attr($title); ?>">
+        </p>
+        <p>
+        <p><label for="<?php echo $this->get_field_id('number'); ?>"><?php _e('Number of posts to show:'); ?></label>
+            <input id="<?php echo $this->get_field_id('number'); ?>" name="<?php echo $this->get_field_name('number'); ?>" type="text" value="<?php echo $number; ?>" size="3" /></p>
+        </p>
+        <?php
+    }
+
+    public function update($new_instance, $old_instance) {
+        $instance = array();
+        $instance['title'] = (!empty($new_instance['title']) ) ? strip_tags($new_instance['title']) : '';
+        $instance['number'] = (int) $new_instance['number'];
+
+        return $instance;
+    }
+
+}
+
+add_action('widgets_init', function() {
+    register_widget('WPRatingWidget');
+});
